@@ -12,13 +12,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PaymentCardRepository extends  JpaRepository<PaymentCard, Integer>,
+public interface PaymentCardRepository extends  JpaRepository<PaymentCard, Long>,
                                                 JpaSpecificationExecutor<PaymentCard> {
-    List<PaymentCard> findByUserId(UUID userId);
+
+
+
+
+    List<PaymentCard> findByUserId(Long userId);
 
     @Query("SELECT c FROM PaymentCard c WHERE c.active = true")
     List<PaymentCard> findActiveCards();
-
 
 
     @Query(value = "SELECT * FROM payment_cards WHERE number = :number",
