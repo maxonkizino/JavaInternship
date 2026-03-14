@@ -73,6 +73,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(MaxCardsPerUserExceededException.class)
+    public ResponseEntity<ApiError> handleMaxCardsPerUser(MaxCardsPerUserExceededException ex,
+                                                          HttpServletRequest request) {
+        ApiError error = new ApiError(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleOtherExceptions(Exception ex, HttpServletRequest request) {
         ApiError error = new ApiError(

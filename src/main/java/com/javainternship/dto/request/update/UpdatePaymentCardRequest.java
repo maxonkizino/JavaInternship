@@ -1,10 +1,11 @@
 package com.javainternship.dto.request.update;
 
-
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
 import java.time.LocalDate;
 
+@Data
 public class UpdatePaymentCardRequest {
 
     @Size(min = 2, max = 255)
@@ -15,7 +16,6 @@ public class UpdatePaymentCardRequest {
 
     private LocalDate expirationDate;
 
-    @Size(min = 2, max = 255)
-    private boolean active;
+    private Boolean active;
 
 }

@@ -8,14 +8,14 @@ import com.javainternship.model.PaymentCard;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface PaymentCardMapper {
 
-    public PaymentCard toPaymentCard(CreatePaymentCardRequest request);
+    @Mapping(target = "user", ignore = true)
+    PaymentCard toPaymentCard(CreatePaymentCardRequest request);
 
     public void toPaymentCard(UpdatePaymentCardRequest request, @MappingTarget PaymentCard paymentCard);
 

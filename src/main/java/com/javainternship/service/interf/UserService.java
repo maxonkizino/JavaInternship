@@ -1,39 +1,30 @@
 package com.javainternship.service.interf;
 
 import com.javainternship.dto.request.create.CreateUserRequest;
-
 import com.javainternship.dto.request.update.UpdateUserRequest;
 import com.javainternship.dto.response.UserResponse;
-import com.javainternship.model.User;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
-    public UserResponse findUserByEmail(String email);
+    UserResponse findUserByEmail(String email);
 
-    public List<UserResponse> findAllUsers();
+    List<UserResponse> findAllUsers();
 
-    public UserResponse findUserById(Long id);
+    Page<UserResponse> searchUsers(String name, String surname, Pageable pageable);
 
+    UserResponse findUserById(Long id);
 
+    UserResponse createUser(CreateUserRequest request);
 
+    UserResponse updateUser(UpdateUserRequest request, Long id);
 
+    void deleteUser(Long id);
 
+    void activateUser(Long id);
 
-
-    public UserResponse createUser(CreateUserRequest request);
-
-
-    public UserResponse updateUser(UpdateUserRequest request,Long id);
-
-
-    public void deleteUser(Long id);
-
-
-
-
+    void deactivateUser(Long id);
 }
+

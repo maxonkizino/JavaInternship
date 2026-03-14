@@ -20,6 +20,8 @@ public interface PaymentCardRepository extends  JpaRepository<PaymentCard, Long>
 
     List<PaymentCard> findByUserId(Long userId);
 
+    long countByUserId(Long userId);
+
     @Query("SELECT c FROM PaymentCard c WHERE c.active = true")
     List<PaymentCard> findActiveCards();
 

@@ -1,16 +1,11 @@
 package com.javainternship.service.interf;
 
-
 import com.javainternship.dto.request.create.CreatePaymentCardRequest;
-
 import com.javainternship.dto.request.update.UpdatePaymentCardRequest;
 import com.javainternship.dto.response.PaymentCardResponse;
-import com.javainternship.model.PaymentCard;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface PaymentCardService {
 
@@ -20,20 +15,18 @@ public interface PaymentCardService {
 
     List<PaymentCardResponse> findAllPaymentCards();
 
+    Page<PaymentCardResponse> searchPaymentCards(String name, String surname, Pageable pageable);
 
-
-
-
+    List<PaymentCardResponse> findCardsByUserId(Long userId);
 
     PaymentCardResponse createPaymentCard(CreatePaymentCardRequest request);
 
-
     PaymentCardResponse updatePaymentCard(UpdatePaymentCardRequest request, Long id);
-
 
     void deletePaymentCard(Long id);
 
+    void activatePaymentCard(Long id);
 
-
-
+    void deactivatePaymentCard(Long id);
 }
+

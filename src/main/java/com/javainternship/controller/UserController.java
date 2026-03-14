@@ -6,6 +6,8 @@ import com.javainternship.dto.response.UserResponse;
 import com.javainternship.service.interf.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,15 @@ public class UserController {
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(service.findAllUsers());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<UserResponse>> searchUsers(@RequestParam(required = false) String name,
+                                                          @RequestParam(required = false) String surname,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        Page<UserResponse> result = service.searchUsers(name, surname, PageRequest.of(page, size));
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
@@ -50,6 +61,18 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         service.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<Void> activateUser(@PathVariable Long id) {
+        service.activateUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivateUser(@PathVariable Long id) {
+        service.deactivateUser(id);
         return ResponseEntity.noContent().build();
     }
 }
