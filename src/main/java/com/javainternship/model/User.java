@@ -24,7 +24,7 @@ public class User extends BaseAuditingEntity{
 
     private String surname;
 
-    private LocalDate birtDate;
+    private LocalDate birthDate;
 
     private String email;
 

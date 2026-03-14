@@ -62,7 +62,7 @@ class PaymentCardIntegrationTest {
         CreateUserRequest userRequest = new CreateUserRequest();
         userRequest.setName("John");
         userRequest.setSurname("Doe");
-        userRequest.setBirtDate(LocalDate.of(1990, 5, 15));
+        userRequest.setBirthDate(LocalDate.of(1990, 5, 15));
         userRequest.setEmail("john.card@example.com");
 
         HttpHeaders headers = new HttpHeaders();

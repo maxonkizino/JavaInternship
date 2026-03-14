@@ -16,7 +16,7 @@ public class UpdateUserRequest {
     @Size(min = 2, max = 255)
     private String surname;
 
-    private LocalDate birtDate;
+    private LocalDate birthDate;
 
     @Size(min = 2, max = 255)
     private String email;

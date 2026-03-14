@@ -54,7 +54,7 @@ class UserIntegrationTest {
         CreateUserRequest create = new CreateUserRequest();
         create.setName("John");
         create.setSurname("Doe");
-        create.setBirtDate(LocalDate.of(1990, 5, 15));
+        create.setBirthDate(LocalDate.of(1990, 5, 15));
         create.setEmail("john.doe@example.com");
 
         HttpHeaders headers = new HttpHeaders();

@@ -21,7 +21,7 @@ public class CreateUserRequest {
 
 
     @NotNull
-    private LocalDate birtDate;
+    private LocalDate birthDate;
 
     @NotBlank
     @Size(min = 2, max = 255)

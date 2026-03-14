@@ -10,7 +10,7 @@ public class UserResponse {
     private Long id;
     private String name;
     private String surname;
-    private LocalDate birtDate;
+    private LocalDate birthDate;
     private String email;
     private boolean active;
 
