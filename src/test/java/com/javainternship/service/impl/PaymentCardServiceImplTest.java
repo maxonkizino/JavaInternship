@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -101,13 +102,13 @@ class PaymentCardServiceImplTest {
         Page<PaymentCard> page = new PageImpl<>(cards);
         PaymentCardResponse response = new PaymentCardResponse();
 
-        when(repository.findAll(any(), any(Pageable.class))).thenReturn(page);
+        when(repository.findAll((Specification<PaymentCard>) any(), any(Pageable.class))).thenReturn(page);
         when(mapper.toPaymentCardResponse(any(PaymentCard.class))).thenReturn(response);
 
         Page<PaymentCardResponse> result = service.searchPaymentCards("John", "Doe", Pageable.unpaged());
 
         assertThat(result.getContent()).hasSize(1);
-        verify(repository).findAll(any(), eq(Pageable.unpaged()));
+        verify(repository).findAll((Specification<PaymentCard>) any(), eq(Pageable.unpaged()));
     }
 
     @Test

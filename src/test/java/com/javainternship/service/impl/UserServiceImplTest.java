@@ -15,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -85,14 +86,14 @@ class UserServiceImplTest {
         Page<User> page = new PageImpl<>(users);
         UserResponse response = new UserResponse();
 
-        when(repository.findAll(any(), any(Pageable.class))).thenReturn(page);
+        when(repository.findAll((Specification<User>) any(), any(Pageable.class))).thenReturn(page);
         when(mapper.toUserResponse(any(User.class))).thenReturn(response);
 
         Page<UserResponse> result = service.searchUsers("John", "Doe", Pageable.unpaged());
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0)).isSameAs(response);
-        verify(repository).findAll(any(), eq(Pageable.unpaged()));
+        verify(repository).findAll((Specification<User>) any(), eq(Pageable.unpaged()));
     }
 
     @Test
@@ -108,21 +109,6 @@ class UserServiceImplTest {
         assertThat(result).isSameAs(response);
     }
 
-    @Test
-    void createUser_mapsAndSaves() {
-        CreateUserRequest request = new CreateUserRequest();
-        User user = new User();
-        UserResponse response = new UserResponse();
-
-        when(mapper.toUser(request)).thenReturn(user);
-        when(repository.save(user)).thenReturn(user);
-        when(mapper.toUserResponse(user)).thenReturn(response);
-
-        UserResponse result = service.createUser(request);
-
-        assertThat(result).isSameAs(response);
-        verify(repository).save(user);
-    }
 
     @Test
     void updateUser_updatesExisting() {

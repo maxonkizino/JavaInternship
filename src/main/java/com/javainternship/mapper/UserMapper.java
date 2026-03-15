@@ -5,9 +5,7 @@ import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.request.update.UpdateUserRequest;
 import com.javainternship.dto.response.UserResponse;
 import com.javainternship.model.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -18,6 +16,7 @@ public interface UserMapper {
 
     public User toUser(CreateUserRequest request);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public void toUser(UpdateUserRequest request, @MappingTarget User user);
 
     public UserResponse toUserResponse(User user);
