@@ -15,6 +15,9 @@ import com.javainternship.repository.UserRepository;
 import com.javainternship.service.interf.PaymentCardService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,6 +34,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     private final UserRepository userRepository;
 
     @Override
+    @Cacheable(cacheNames = "cardsByNumber", key = "#cardNumber")
     public PaymentCardResponse findPaymentCardByCardNumber(String cardNumber) {
         PaymentCard card = repository.findByNumber(cardNumber)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with number:" + cardNumber));
@@ -38,6 +42,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     }
 
     @Override
+    @Cacheable(cacheNames = "cardsById", key = "#id")
     public PaymentCardResponse findPaymentCardById(Long id) {
         PaymentCard card = repository.findById(id)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
@@ -61,6 +66,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     }
 
     @Override
+    @Cacheable(cacheNames = "cardsByUserId", key = "#userId")
     public List<PaymentCardResponse> findCardsByUserId(Long userId) {
         List<PaymentCard> cards = repository.findByUserId(userId);
         return mapper.toPaymentCardResponses(cards);
@@ -68,6 +74,11 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "cardsByUserId", key = "#request.userId"),
+            @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+            @CacheEvict(cacheNames = "cardsById", allEntries = true)
+    })
     public PaymentCardResponse createPaymentCard(CreatePaymentCardRequest request) {
         Long userId = request.getUserId();
         User user = userRepository.findById(userId)
@@ -87,6 +98,11 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+            @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+            @CacheEvict(cacheNames = "cardsById", key = "#id")
+    })
     public PaymentCardResponse updatePaymentCard(UpdatePaymentCardRequest request, Long id) {
         PaymentCard card = repository.findById(id)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
@@ -97,12 +113,22 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+            @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+            @CacheEvict(cacheNames = "cardsById", key = "#id")
+    })
     public void deletePaymentCard(Long id) {
         repository.deleteById(id);
     }
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+            @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+            @CacheEvict(cacheNames = "cardsById", key = "#id")
+    })
     public void activatePaymentCard(Long id) {
         PaymentCard card = repository.findById(id)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
@@ -112,6 +138,11 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+            @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+            @CacheEvict(cacheNames = "cardsById", key = "#id")
+    })
     public void deactivatePaymentCard(Long id) {
         PaymentCard card = repository.findById(id)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
