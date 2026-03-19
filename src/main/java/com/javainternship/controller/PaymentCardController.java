@@ -22,15 +22,10 @@ public class PaymentCardController {
     private final PaymentCardService service;
 
     @GetMapping
-    public ResponseEntity<List<PaymentCardResponse>> getAllPaymentCards() {
-        return ResponseEntity.ok(service.findAllPaymentCards());
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<Page<PaymentCardResponse>> searchPaymentCards(@RequestParam(required = false) String name,
-                                                                        @RequestParam(required = false) String surname,
-                                                                        @RequestParam(defaultValue = "0") int page,
-                                                                        @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<PaymentCardResponse>> getAllPaymentCards(@RequestParam(required = false) String name,
+                                                                              @RequestParam(required = false) String surname,
+                                                                              @RequestParam(defaultValue = "0") int page,
+                                                                              @RequestParam(defaultValue = "10") int size) {
         Page<PaymentCardResponse> result = service.searchPaymentCards(name, surname, PageRequest.of(page, size));
         return ResponseEntity.ok(result);
     }
@@ -69,13 +64,13 @@ public class PaymentCardController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/activate")
+    @PatchMapping("/{id}/activate")
     public ResponseEntity<Void> activatePaymentCard(@PathVariable Long id) {
         service.activatePaymentCard(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/deactivate")
+    @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> deactivatePaymentCard(@PathVariable Long id) {
         service.deactivatePaymentCard(id);
         return ResponseEntity.noContent().build();

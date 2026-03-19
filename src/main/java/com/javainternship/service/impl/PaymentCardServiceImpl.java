@@ -13,7 +13,7 @@ import com.javainternship.model.specification.PaymentCardSpecification;
 import com.javainternship.repository.PaymentCardRepository;
 import com.javainternship.repository.UserRepository;
 import com.javainternship.service.interf.PaymentCardService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;

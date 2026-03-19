@@ -68,7 +68,6 @@ class UserIntegrationTest extends AbstractIntegrationTest {
         assertThat(created.getName()).isEqualTo("John");
         assertThat(created.getEmail()).isEqualTo("john.doe@example.com");
 
-        // get by id
         EntityExchangeResult<UserResponse> getResult = webTestClient.get()
                 .uri(baseUrl() + "/" + id)
                 .exchange()
@@ -77,7 +76,6 @@ class UserIntegrationTest extends AbstractIntegrationTest {
                 .returnResult();
         assertThat(getResult.getResponseBody()).isNotNull();
 
-        // update
         UpdateUserRequest update = new UpdateUserRequest();
         update.setName("Jane");
         update.setSurname("Smith");
@@ -95,19 +93,16 @@ class UserIntegrationTest extends AbstractIntegrationTest {
         assertThat(updated).isNotNull();
         assertThat(updated.getName()).isEqualTo("Jane");
 
-        // deactivate
-        webTestClient.post()
+        webTestClient.patch()
                 .uri(baseUrl() + "/" + id + "/deactivate")
                 .exchange()
                 .expectStatus().isNoContent();
 
-        // activate
-        webTestClient.post()
+        webTestClient.patch()
                 .uri(baseUrl() + "/" + id + "/activate")
                 .exchange()
                 .expectStatus().isNoContent();
 
-        // delete
         webTestClient.delete()
                 .uri(baseUrl() + "/" + id)
                 .exchange()

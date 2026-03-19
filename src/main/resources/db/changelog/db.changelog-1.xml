@@ -6,7 +6,7 @@
    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     
-    <!--Пользователи-->
+
     <changeSet id="1-add-users" author="maxonkizino">
 
         <createTable tableName="users">

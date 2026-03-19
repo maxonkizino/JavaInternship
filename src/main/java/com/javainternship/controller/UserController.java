@@ -12,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/users")
 @AllArgsConstructor
@@ -22,15 +20,10 @@ public class UserController {
     private final UserService service;
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        return ResponseEntity.ok(service.findAllUsers());
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<Page<UserResponse>> searchUsers(@RequestParam(required = false) String name,
-                                                          @RequestParam(required = false) String surname,
-                                                          @RequestParam(defaultValue = "0") int page,
-                                                          @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<UserResponse>> getAllUsers(@RequestParam(required = false) String name,
+                                                            @RequestParam(required = false) String surname,
+                                                            @RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size) {
         Page<UserResponse> result = service.searchUsers(name, surname, PageRequest.of(page, size));
         return ResponseEntity.ok(result);
     }
@@ -64,13 +57,13 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/activate")
+    @PatchMapping("/{id}/activate")
     public ResponseEntity<Void> activateUser(@PathVariable Long id) {
         service.activateUser(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/deactivate")
+    @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> deactivateUser(@PathVariable Long id) {
         service.deactivateUser(id);
         return ResponseEntity.noContent().build();

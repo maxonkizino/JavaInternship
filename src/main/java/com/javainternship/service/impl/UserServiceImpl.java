@@ -10,16 +10,16 @@ import com.javainternship.model.User;
 import com.javainternship.model.specification.UserSpecification;
 import com.javainternship.repository.UserRepository;
 import com.javainternship.service.interf.UserService;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse createUser(CreateUserRequest request) {
         User user = mapper.toUser(request);
         user = repository.save(user);
-        return mapper.toUserResponse(repository.save(user));
+        return mapper.toUserResponse(user);
     }
 
     @Override

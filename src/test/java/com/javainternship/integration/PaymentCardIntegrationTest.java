@@ -54,7 +54,6 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void fullFlow_create_get_update_activate_deactivate_delete_card() {
-        // 1. Create user first
         CreateUserRequest userRequest = new CreateUserRequest();
         userRequest.setName("John");
         userRequest.setSurname("Doe");
@@ -74,7 +73,6 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
         assertThat(user).isNotNull();
         Long userId = user.getId();
 
-        // 2. Create card for user
         CreatePaymentCardRequest cardRequest = new CreatePaymentCardRequest();
         cardRequest.setUserId(userId);
         cardRequest.setNumber("4111111111111111");
@@ -96,7 +94,6 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
         Long cardId = created.getId();
         assertThat(created.getNumber()).isEqualTo("4111111111111111");
 
-        // 3. Get card by id
         EntityExchangeResult<PaymentCardResponse> getResult = webTestClient.get()
                 .uri(cardsUrl() + "/" + cardId)
                 .exchange()
@@ -105,7 +102,6 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
                 .returnResult();
         assertThat(getResult.getResponseBody()).isNotNull();
 
-        // 4. Get cards by user id
         EntityExchangeResult<List> byUserResult = webTestClient.get()
                 .uri(cardsUrl() + "/by-user/" + userId)
                 .exchange()
@@ -115,7 +111,6 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
         assertThat(byUserResult.getResponseBody()).isNotNull();
         assertThat(byUserResult.getResponseBody()).isNotEmpty();
 
-        // 5. Update card
         UpdatePaymentCardRequest updateRequest = new UpdatePaymentCardRequest();
         updateRequest.setHolder("Jane Doe");
 
@@ -129,19 +124,16 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
                 .returnResult();
         assertThat(updateResult.getResponseBody()).isNotNull();
 
-        // 6. Deactivate
-        webTestClient.post()
+        webTestClient.patch()
                 .uri(cardsUrl() + "/" + cardId + "/deactivate")
                 .exchange()
                 .expectStatus().isNoContent();
 
-        // 7. Activate
-        webTestClient.post()
+        webTestClient.patch()
                 .uri(cardsUrl() + "/" + cardId + "/activate")
                 .exchange()
                 .expectStatus().isNoContent();
 
-        // 8. Delete card
         webTestClient.delete()
                 .uri(cardsUrl() + "/" + cardId)
                 .exchange()
