@@ -109,6 +109,6 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKER_IMAGE }}:${{ github.head_ref || github.ref_name }}
+            ${{ env.DOCKER_IMAGE }}:${{ replace(github.head_ref || github.ref_name, '/', '-') }}
             ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
             ${{ env.DOCKER_IMAGE }}:latest
