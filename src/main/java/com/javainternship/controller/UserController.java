@@ -2,6 +2,7 @@ package com.javainternship.controller;
 
 import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.request.update.UpdateUserRequest;
+import com.javainternship.dto.request.update.SetUserStatusRequest;
 import com.javainternship.dto.response.UserResponse;
 import com.javainternship.service.interf.UserService;
 import jakarta.validation.Valid;
@@ -33,8 +34,8 @@ public class UserController {
         return ResponseEntity.ok(service.findUserById(id));
     }
 
-    @GetMapping("/by-email")
-    public ResponseEntity<UserResponse> getUserByEmail(@RequestParam String email) {
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
         return ResponseEntity.ok(service.findUserByEmail(email));
     }
 
@@ -57,15 +58,14 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/activate")
-    public ResponseEntity<Void> activateUser(@PathVariable Long id) {
-        service.activateUser(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivateUser(@PathVariable Long id) {
-        service.deactivateUser(id);
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Void> setUserStatus(@PathVariable Long id,
+                                                 @Valid @RequestBody SetUserStatusRequest request) {
+        if (Boolean.TRUE.equals(request.getActive())) {
+            service.activateUser(id);
+        } else {
+            service.deactivateUser(id);
+        }
         return ResponseEntity.noContent().build();
     }
 }

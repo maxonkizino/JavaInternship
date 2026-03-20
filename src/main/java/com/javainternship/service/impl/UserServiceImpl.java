@@ -34,20 +34,29 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cacheable(cacheNames = "usersByEmail", key = "#email")
     public UserResponse findUserByEmail(String email) {
-        User user = repository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found with email: " + email));
+        Specification<User> spec = Specification
+                .where(UserSpecification.hasEmail(email))
+                .and(UserSpecification.isActive());
+
+        User user = repository.findOne(spec)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
         return mapper.toUserResponse(user);
     }
 
     @Override
     public List<UserResponse> findAllUsers() {
-        List<User> users = repository.findAll();
+        Specification<User> spec = Specification
+                .where(UserSpecification.isActive());
+
+        List<User> users = repository.findAll(spec);
         return mapper.toUserResponses(users);
     }
 
     @Override
     public Page<UserResponse> searchUsers(String name, String surname, Pageable pageable) {
         Specification<User> spec = Specification
-                .where(UserSpecification.hasName(name))
+                .where(UserSpecification.isActive())
+                .and(UserSpecification.hasName(name))
                 .and(UserSpecification.hasSurname(surname));
 
         Page<User> page = repository.findAll(spec, pageable);
@@ -57,7 +66,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cacheable(cacheNames = "usersById", key = "#id")
     public UserResponse findUserById(Long id) {
-        User user = repository.findById(id).orElseThrow(()->new UserNotFoundException("User not found"));
+        Specification<User> spec = Specification
+                .where(UserSpecification.hasId(id))
+                .and(UserSpecification.isActive());
+
+        User user = repository.findOne(spec)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return mapper.toUserResponse(user);
     }
 
@@ -71,6 +85,7 @@ public class UserServiceImpl implements UserService {
     )
     public UserResponse createUser(CreateUserRequest request) {
         User user = mapper.toUser(request);
+        user.setActive(true);
         user = repository.save(user);
         return mapper.toUserResponse(user);
     }
@@ -84,7 +99,12 @@ public class UserServiceImpl implements UserService {
             }
     )
     public UserResponse updateUser(UpdateUserRequest request, Long id) {
-        User user = repository.findById(id).orElseThrow(()->new UserNotFoundException("User not found"));
+        Specification<User> spec = Specification
+                .where(UserSpecification.hasId(id))
+                .and(UserSpecification.isActive());
+
+        User user = repository.findOne(spec)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         mapper.toUser(request,user);
         repository.save(user);
         return mapper.toUserResponse(user);
@@ -99,7 +119,7 @@ public class UserServiceImpl implements UserService {
             }
     )
     public void deleteUser(Long id) {
-        repository.deleteById(id);
+        deactivateUser(id);
     }
 
     @Override

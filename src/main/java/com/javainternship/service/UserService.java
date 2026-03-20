@@ -1,4 +1,4 @@
-package com.javainternship.service;
+package com.javainternship.service.interf;
 
 import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.request.update.UpdateUserRequest;

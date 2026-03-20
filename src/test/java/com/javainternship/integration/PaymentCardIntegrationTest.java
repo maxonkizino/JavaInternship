@@ -3,6 +3,7 @@ package com.javainternship.integration;
 import com.javainternship.dto.request.create.CreatePaymentCardRequest;
 import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.request.update.UpdatePaymentCardRequest;
+import com.javainternship.dto.request.update.SetPaymentCardStatusRequest;
 import com.javainternship.dto.response.PaymentCardResponse;
 import com.javainternship.dto.response.UserResponse;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -102,14 +104,16 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
                 .returnResult();
         assertThat(getResult.getResponseBody()).isNotNull();
 
-        EntityExchangeResult<List> byUserResult = webTestClient.get()
-                .uri(cardsUrl() + "/by-user/" + userId)
+        EntityExchangeResult<Map> byUserResult = webTestClient.get()
+                .uri(cardsUrl() + "/by-user/" + userId + "?page=0&size=10")
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(List.class)
+                .expectBody(Map.class)
                 .returnResult();
         assertThat(byUserResult.getResponseBody()).isNotNull();
-        assertThat(byUserResult.getResponseBody()).isNotEmpty();
+        List<?> content = (List<?>) byUserResult.getResponseBody().get("content");
+        assertThat(content).isNotNull();
+        assertThat(content).isNotEmpty();
 
         UpdatePaymentCardRequest updateRequest = new UpdatePaymentCardRequest();
         updateRequest.setHolder("Jane Doe");
@@ -124,13 +128,23 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
                 .returnResult();
         assertThat(updateResult.getResponseBody()).isNotNull();
 
+        SetPaymentCardStatusRequest deactivateReq = new SetPaymentCardStatusRequest();
+        deactivateReq.setActive(false);
+
         webTestClient.patch()
-                .uri(cardsUrl() + "/" + cardId + "/deactivate")
+                .uri(cardsUrl() + "/" + cardId + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(deactivateReq)
                 .exchange()
                 .expectStatus().isNoContent();
 
+        SetPaymentCardStatusRequest activateReq = new SetPaymentCardStatusRequest();
+        activateReq.setActive(true);
+
         webTestClient.patch()
-                .uri(cardsUrl() + "/" + cardId + "/activate")
+                .uri(cardsUrl() + "/" + cardId + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(activateReq)
                 .exchange()
                 .expectStatus().isNoContent();
 
@@ -138,5 +152,10 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
                 .uri(cardsUrl() + "/" + cardId)
                 .exchange()
                 .expectStatus().isNoContent();
+
+        webTestClient.get()
+                .uri(cardsUrl() + "/" + cardId)
+                .exchange()
+                .expectStatus().isNotFound();
     }
 }

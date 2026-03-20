@@ -49,19 +49,19 @@ class UserServiceImplTest {
         User user = new User();
         UserResponse response = new UserResponse();
 
-        when(repository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(repository.findOne((Specification<User>) any())).thenReturn(Optional.of(user));
         when(mapper.toUserResponse(user)).thenReturn(response);
 
         UserResponse result = service.findUserByEmail(email);
 
         assertThat(result).isSameAs(response);
-        verify(repository).findByEmail(email);
+        verify(repository).findOne((Specification<User>) any());
         verify(mapper).toUserResponse(user);
     }
 
     @Test
     void findUserByEmail_throwsWhenNotFound() {
-        when(repository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+        when(repository.findOne((Specification<User>) any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.findUserByEmail("missing@example.com"))
                 .isInstanceOf(UserNotFoundException.class);
@@ -72,13 +72,13 @@ class UserServiceImplTest {
         List<User> users = List.of(new User());
         List<UserResponse> responses = List.of(new UserResponse());
 
-        when(repository.findAll()).thenReturn(users);
+        when(repository.findAll((Specification<User>) any())).thenReturn(users);
         when(mapper.toUserResponses(users)).thenReturn(responses);
 
         List<UserResponse> result = service.findAllUsers();
 
         assertThat(result).isEqualTo(responses);
-        verify(repository).findAll();
+        verify(repository).findAll((Specification<User>) any());
         verify(mapper).toUserResponses(users);
     }
 
@@ -103,7 +103,7 @@ class UserServiceImplTest {
         User user = new User();
         UserResponse response = new UserResponse();
 
-        when(repository.findById(1L)).thenReturn(Optional.of(user));
+        when(repository.findOne((Specification<User>) any())).thenReturn(Optional.of(user));
         when(mapper.toUserResponse(user)).thenReturn(response);
 
         UserResponse result = service.findUserById(1L);
@@ -118,7 +118,7 @@ class UserServiceImplTest {
         User existing = new User();
         UserResponse response = new UserResponse();
 
-        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+        when(repository.findOne((Specification<User>) any())).thenReturn(Optional.of(existing));
         doNothing().when(mapper).toUser(request, existing);
         when(repository.save(existing)).thenReturn(existing);
         when(mapper.toUserResponse(existing)).thenReturn(response);
@@ -132,8 +132,16 @@ class UserServiceImplTest {
 
     @Test
     void deleteUser_deletesById() {
+        User user = new User();
+        user.setActive(true);
+        when(repository.findById(1L)).thenReturn(Optional.of(user));
+        when(repository.save(user)).thenReturn(user);
+
         service.deleteUser(1L);
-        verify(repository).deleteById(1L);
+
+        assertThat(user.isActive()).isFalse();
+        verify(repository).findById(1L);
+        verify(repository).save(user);
     }
 
     @Test

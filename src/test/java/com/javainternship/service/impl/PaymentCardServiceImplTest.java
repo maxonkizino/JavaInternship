@@ -6,6 +6,7 @@ import com.javainternship.dto.response.PaymentCardResponse;
 import com.javainternship.exception.MaxCardsPerUserExceededException;
 import com.javainternship.exception.PaymentCardNotFoundException;
 import com.javainternship.exception.UserNotFoundException;
+import com.javainternship.config.PaymentCardLimitProperties;
 import com.javainternship.mapper.PaymentCardMapper;
 import com.javainternship.model.PaymentCard;
 import com.javainternship.model.User;
@@ -42,12 +43,16 @@ class PaymentCardServiceImplTest {
     @Mock
     private PaymentCardMapper mapper;
 
+    @Mock
+    private PaymentCardLimitProperties limitProperties;
+
     @InjectMocks
     private PaymentCardServiceImpl service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(limitProperties.getMaxPerUser()).thenReturn(5L);
     }
 
     @Test
@@ -56,18 +61,18 @@ class PaymentCardServiceImplTest {
         PaymentCard card = new PaymentCard();
         PaymentCardResponse response = new PaymentCardResponse();
 
-        when(repository.findByNumber(number)).thenReturn(Optional.of(card));
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
         when(mapper.toPaymentCardResponse(card)).thenReturn(response);
 
         PaymentCardResponse result = service.findPaymentCardByCardNumber(number);
 
         assertThat(result).isSameAs(response);
-        verify(repository).findByNumber(number);
+        verify(repository).findOne((Specification<PaymentCard>) any());
     }
 
     @Test
     void findPaymentCardByCardNumber_throwsWhenMissing() {
-        when(repository.findByNumber("missing")).thenReturn(Optional.empty());
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.findPaymentCardByCardNumber("missing"))
                 .isInstanceOf(PaymentCardNotFoundException.class);
@@ -78,7 +83,7 @@ class PaymentCardServiceImplTest {
         PaymentCard card = new PaymentCard();
         PaymentCardResponse response = new PaymentCardResponse();
 
-        when(repository.findById(1L)).thenReturn(Optional.of(card));
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
         when(mapper.toPaymentCardResponse(card)).thenReturn(response);
 
         PaymentCardResponse result = service.findPaymentCardById(1L);
@@ -91,7 +96,7 @@ class PaymentCardServiceImplTest {
         List<PaymentCard> cards = List.of(new PaymentCard());
         List<PaymentCardResponse> responses = List.of(new PaymentCardResponse());
 
-        when(repository.findAll()).thenReturn(cards);
+        when(repository.findAll((Specification<PaymentCard>) any())).thenReturn(cards);
         when(mapper.toPaymentCardResponses(cards)).thenReturn(responses);
 
         List<PaymentCardResponse> result = service.findAllPaymentCards();
@@ -115,18 +120,20 @@ class PaymentCardServiceImplTest {
     }
 
     @Test
-    void findCardsByUserId_returnsList() {
+    void findCardsByUserId_returnsPage() {
         Long userId = 1L;
         List<PaymentCard> cards = List.of(new PaymentCard());
         List<PaymentCardResponse> responses = List.of(new PaymentCardResponse());
+        Page<PaymentCard> page = new PageImpl<>(cards);
+        Pageable pageable = Pageable.unpaged();
 
-        when(repository.findByUserId(userId)).thenReturn(cards);
-        when(mapper.toPaymentCardResponses(cards)).thenReturn(responses);
+        when(repository.findAll((Specification<PaymentCard>) any(), eq(pageable))).thenReturn(page);
+        when(mapper.toPaymentCardResponse(any(PaymentCard.class))).thenReturn(responses.get(0));
 
-        List<PaymentCardResponse> result = service.findCardsByUserId(userId);
+        Page<PaymentCardResponse> result = service.findCardsByUserId(userId, pageable);
 
-        assertThat(result).isEqualTo(responses);
-        verify(repository).findByUserId(userId);
+        assertThat(result.getContent()).isEqualTo(responses);
+        verify(repository).findAll((Specification<PaymentCard>) any(), eq(pageable));
     }
 
     @Test
@@ -135,11 +142,12 @@ class PaymentCardServiceImplTest {
         request.setUserId(1L);
         User user = new User();
         user.setId(1L);
+        user.setActive(true);
         PaymentCard card = new PaymentCard();
         PaymentCardResponse response = new PaymentCardResponse();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(repository.countByUserId(1L)).thenReturn(2L);
+        when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(user));
+        when(repository.count((Specification<PaymentCard>) any())).thenReturn(2L);
         when(mapper.toPaymentCard(request)).thenReturn(card);
         when(repository.save(card)).thenReturn(card);
         when(mapper.toPaymentCardResponse(card)).thenReturn(response);
@@ -156,7 +164,7 @@ class PaymentCardServiceImplTest {
         CreatePaymentCardRequest request = new CreatePaymentCardRequest();
         request.setUserId(999L);
 
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(userRepository.findByIdForUpdate(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.createPaymentCard(request))
                 .isInstanceOf(UserNotFoundException.class);
@@ -167,9 +175,10 @@ class PaymentCardServiceImplTest {
         CreatePaymentCardRequest request = new CreatePaymentCardRequest();
         request.setUserId(1L);
         User user = new User();
+        user.setActive(true);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(repository.countByUserId(1L)).thenReturn(5L);
+        when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(user));
+        when(repository.count((Specification<PaymentCard>) any())).thenReturn(5L);
 
         assertThatThrownBy(() -> service.createPaymentCard(request))
                 .isInstanceOf(MaxCardsPerUserExceededException.class);
@@ -181,7 +190,7 @@ class PaymentCardServiceImplTest {
         PaymentCard existing = new PaymentCard();
         PaymentCardResponse response = new PaymentCardResponse();
 
-        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(existing));
         doNothing().when(mapper).toPaymentCard(request, existing);
         when(repository.save(existing)).thenReturn(existing);
         when(mapper.toPaymentCardResponse(existing)).thenReturn(response);
@@ -194,9 +203,17 @@ class PaymentCardServiceImplTest {
     }
 
     @Test
-    void deletePaymentCard_deletesById() {
+    void deletePaymentCard_softDeletes() {
+        PaymentCard card = new PaymentCard();
+        card.setActive(true);
+
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
+        when(repository.save(card)).thenReturn(card);
+
         service.deletePaymentCard(1L);
-        verify(repository).deleteById(1L);
+
+        assertThat(card.isActive()).isFalse();
+        verify(repository).save(card);
     }
 
     @Test

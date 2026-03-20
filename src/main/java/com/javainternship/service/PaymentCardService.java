@@ -1,4 +1,4 @@
-package com.javainternship.service;
+package com.javainternship.service.interf;
 
 import com.javainternship.dto.request.create.CreatePaymentCardRequest;
 import com.javainternship.dto.request.update.UpdatePaymentCardRequest;
@@ -17,7 +17,7 @@ public interface PaymentCardService {
 
     Page<PaymentCardResponse> searchPaymentCards(String name, String surname, Pageable pageable);
 
-    List<PaymentCardResponse> findCardsByUserId(Long userId);
+    Page<PaymentCardResponse> findCardsByUserId(Long userId, Pageable pageable);
 
     PaymentCardResponse createPaymentCard(CreatePaymentCardRequest request);
 

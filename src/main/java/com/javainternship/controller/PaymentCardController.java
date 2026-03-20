@@ -1,6 +1,7 @@
 package com.javainternship.controller;
 
 import com.javainternship.dto.request.create.CreatePaymentCardRequest;
+import com.javainternship.dto.request.update.SetPaymentCardStatusRequest;
 import com.javainternship.dto.request.update.UpdatePaymentCardRequest;
 import com.javainternship.dto.response.PaymentCardResponse;
 import com.javainternship.service.interf.PaymentCardService;
@@ -11,8 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/payment-cards")
@@ -35,14 +34,16 @@ public class PaymentCardController {
         return ResponseEntity.ok(service.findPaymentCardById(id));
     }
 
-    @GetMapping("/by-number")
-    public ResponseEntity<PaymentCardResponse> getPaymentCardByNumber(@RequestParam String cardNumber) {
+    @GetMapping("/by-number/{cardNumber}")
+    public ResponseEntity<PaymentCardResponse> getPaymentCardByNumber(@PathVariable String cardNumber) {
         return ResponseEntity.ok(service.findPaymentCardByCardNumber(cardNumber));
     }
 
     @GetMapping("/by-user/{userId}")
-    public ResponseEntity<List<PaymentCardResponse>> getCardsByUserId(@PathVariable Long userId) {
-        return ResponseEntity.ok(service.findCardsByUserId(userId));
+    public ResponseEntity<Page<PaymentCardResponse>> getCardsByUserId(@PathVariable Long userId,
+                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(service.findCardsByUserId(userId, PageRequest.of(page, size)));
     }
 
     @PostMapping
@@ -64,15 +65,14 @@ public class PaymentCardController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/activate")
-    public ResponseEntity<Void> activatePaymentCard(@PathVariable Long id) {
-        service.activatePaymentCard(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivatePaymentCard(@PathVariable Long id) {
-        service.deactivatePaymentCard(id);
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Void> setPaymentCardStatus(@PathVariable Long id,
+                                                       @Valid @RequestBody SetPaymentCardStatusRequest request) {
+        if (Boolean.TRUE.equals(request.getActive())) {
+            service.activatePaymentCard(id);
+        } else {
+            service.deactivatePaymentCard(id);
+        }
         return ResponseEntity.noContent().build();
     }
 }

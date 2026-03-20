@@ -2,6 +2,7 @@ package com.javainternship.integration;
 
 import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.request.update.UpdateUserRequest;
+import com.javainternship.dto.request.update.SetUserStatusRequest;
 import com.javainternship.dto.response.UserResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -93,13 +94,23 @@ class UserIntegrationTest extends AbstractIntegrationTest {
         assertThat(updated).isNotNull();
         assertThat(updated.getName()).isEqualTo("Jane");
 
+        SetUserStatusRequest deactivateReq = new SetUserStatusRequest();
+        deactivateReq.setActive(false);
+
         webTestClient.patch()
-                .uri(baseUrl() + "/" + id + "/deactivate")
+                .uri(baseUrl() + "/" + id + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(deactivateReq)
                 .exchange()
                 .expectStatus().isNoContent();
 
+        SetUserStatusRequest activateReq = new SetUserStatusRequest();
+        activateReq.setActive(true);
+
         webTestClient.patch()
-                .uri(baseUrl() + "/" + id + "/activate")
+                .uri(baseUrl() + "/" + id + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(activateReq)
                 .exchange()
                 .expectStatus().isNoContent();
 
@@ -107,5 +118,10 @@ class UserIntegrationTest extends AbstractIntegrationTest {
                 .uri(baseUrl() + "/" + id)
                 .exchange()
                 .expectStatus().isNoContent();
+
+        webTestClient.get()
+                .uri(baseUrl() + "/" + id)
+                .exchange()
+                .expectStatus().isNotFound();
     }
 }

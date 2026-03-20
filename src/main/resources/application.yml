@@ -23,3 +23,7 @@ spring:
           max-idle: 8
           min-idle: 2
           max-wait: -1ms
+
+app:
+  cards:
+    max-per-user: 5

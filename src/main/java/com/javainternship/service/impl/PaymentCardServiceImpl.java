@@ -12,6 +12,7 @@ import com.javainternship.model.User;
 import com.javainternship.model.specification.PaymentCardSpecification;
 import com.javainternship.repository.PaymentCardRepository;
 import com.javainternship.repository.UserRepository;
+import com.javainternship.config.PaymentCardLimitProperties;
 import com.javainternship.service.interf.PaymentCardService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
@@ -32,11 +33,17 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     private final PaymentCardRepository repository;
     private final PaymentCardMapper mapper;
     private final UserRepository userRepository;
+    private final PaymentCardLimitProperties limitProperties;
 
     @Override
     @Cacheable(cacheNames = "cardsByNumber", key = "#cardNumber")
     public PaymentCardResponse findPaymentCardByCardNumber(String cardNumber) {
-        PaymentCard card = repository.findByNumber(cardNumber)
+        Specification<PaymentCard> spec = Specification
+                .where(PaymentCardSpecification.hasNumber(cardNumber))
+                .and(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive());
+
+        PaymentCard card = repository.findOne(spec)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with number:" + cardNumber));
         return mapper.toPaymentCardResponse(card);
     }
@@ -44,21 +51,32 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     @Override
     @Cacheable(cacheNames = "cardsById", key = "#id")
     public PaymentCardResponse findPaymentCardById(Long id) {
-        PaymentCard card = repository.findById(id)
+        Specification<PaymentCard> spec = Specification
+                .where(PaymentCardSpecification.hasId(id))
+                .and(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive());
+
+        PaymentCard card = repository.findOne(spec)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
         return mapper.toPaymentCardResponse(card);
     }
 
     @Override
     public List<PaymentCardResponse> findAllPaymentCards() {
-        List<PaymentCard> cards = repository.findAll();
+        Specification<PaymentCard> spec = Specification
+                .where(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive());
+
+        List<PaymentCard> cards = repository.findAll(spec);
         return mapper.toPaymentCardResponses(cards);
     }
 
     @Override
     public Page<PaymentCardResponse> searchPaymentCards(String name, String surname, Pageable pageable) {
         Specification<PaymentCard> spec = Specification
-                .where(PaymentCardSpecification.hasUserName(name))
+                .where(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive())
+                .and(PaymentCardSpecification.hasUserName(name))
                 .and(PaymentCardSpecification.hasUserSurname(surname));
 
         Page<PaymentCard> page = repository.findAll(spec, pageable);
@@ -66,28 +84,42 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     }
 
     @Override
-    @Cacheable(cacheNames = "cardsByUserId", key = "#userId")
-    public List<PaymentCardResponse> findCardsByUserId(Long userId) {
-        List<PaymentCard> cards = repository.findByUserId(userId);
-        return mapper.toPaymentCardResponses(cards);
+    @Cacheable(cacheNames = "cardsByUserId", key = "#p0 + ':' + #p1.pageNumber + ':' + #p1.pageSize")
+    public Page<PaymentCardResponse> findCardsByUserId(Long userId, Pageable pageable) {
+        Specification<PaymentCard> spec = Specification
+                .where(PaymentCardSpecification.hasUserId(userId))
+                .and(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive());
+
+        return repository.findAll(spec, pageable)
+                .map(mapper::toPaymentCardResponse);
     }
 
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(cacheNames = "cardsByUserId", key = "#request.userId"),
+            @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
             @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
             @CacheEvict(cacheNames = "cardsById", allEntries = true)
     })
     public PaymentCardResponse createPaymentCard(CreatePaymentCardRequest request) {
         Long userId = request.getUserId();
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdForUpdate(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-        long count = repository.countByUserId(userId);
-        if (count >= 5) {
+        if (!user.isActive()) {
+            throw new UserNotFoundException("User not found with id: " + userId);
+        }
+
+        Specification<PaymentCard> countSpec = Specification
+                .where(PaymentCardSpecification.hasUserId(userId))
+                .and(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive());
+
+        long count = repository.count(countSpec);
+        if (count >= limitProperties.getMaxPerUser()) {
             throw new MaxCardsPerUserExceededException(
-                    "User with id " + userId + " already has maximum number of cards (5)");
+                    "User with id " + userId + " already has maximum number of cards (" + limitProperties.getMaxPerUser() + ")");
         }
 
         PaymentCard card = mapper.toPaymentCard(request);
@@ -104,7 +136,12 @@ public class PaymentCardServiceImpl implements PaymentCardService {
             @CacheEvict(cacheNames = "cardsById", key = "#id")
     })
     public PaymentCardResponse updatePaymentCard(UpdatePaymentCardRequest request, Long id) {
-        PaymentCard card = repository.findById(id)
+        Specification<PaymentCard> spec = Specification
+                .where(PaymentCardSpecification.hasId(id))
+                .and(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive());
+
+        PaymentCard card = repository.findOne(spec)
                 .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
         mapper.toPaymentCard(request, card);
         card = repository.save(card);
@@ -119,7 +156,15 @@ public class PaymentCardServiceImpl implements PaymentCardService {
             @CacheEvict(cacheNames = "cardsById", key = "#id")
     })
     public void deletePaymentCard(Long id) {
-        repository.deleteById(id);
+        Specification<PaymentCard> spec = Specification
+                .where(PaymentCardSpecification.hasId(id))
+                .and(PaymentCardSpecification.isActive())
+                .and(PaymentCardSpecification.isUserActive());
+
+        PaymentCard card = repository.findOne(spec)
+                .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
+        card.setActive(false);
+        repository.save(card);
     }
 
     @Override

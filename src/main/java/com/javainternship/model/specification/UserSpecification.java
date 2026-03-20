@@ -18,4 +18,19 @@ public class UserSpecification {
                         cb.like(cb.lower(root.get("surname")),
                                 "%" + surname.toLowerCase() + "%");
     }
+
+    public static Specification<User> hasEmail(String email) {
+        return (root, query, cb) ->
+                email == null ? null :
+                        cb.equal(cb.lower(root.get("email")), email.toLowerCase());
+    }
+
+    public static Specification<User> hasId(Long id) {
+        return (root, query, cb) ->
+                id == null ? null : cb.equal(root.get("id"), id);
+    }
+
+    public static Specification<User> isActive() {
+        return (root, query, cb) -> cb.isTrue(root.get("active"));
+    }
 }
