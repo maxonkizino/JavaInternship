@@ -133,13 +133,13 @@ class UserServiceImplTest {
     void deleteUser_deletesById() {
         User user = new User();
         user.setActive(true);
-        when(repository.findById(1L)).thenReturn(Optional.of(user));
+        when(repository.findOne((Specification<User>) any())).thenReturn(Optional.of(user));
         when(repository.save(user)).thenReturn(user);
 
         service.deleteUser(1L);
 
         assertThat(user.isActive()).isFalse();
-        verify(repository).findById(1L);
+        verify(repository).findOne((Specification<User>) any());
         verify(repository).save(user);
     }
 

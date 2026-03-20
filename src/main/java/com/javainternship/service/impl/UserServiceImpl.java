@@ -125,7 +125,12 @@ public class UserServiceImpl implements UserService {
             }
     )
     public void deleteUser(Long id) {
-        User user = repository.findById(id)
+
+        Specification<User> spec = Specification
+                .where(UserSpecification.hasId(id))
+                .and(UserSpecification.isActive());
+
+        User user = repository.findOne(spec)
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
         user.setActive(false);
         repository.save(user);
