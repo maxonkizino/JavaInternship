@@ -4,6 +4,9 @@ import com.javainternship.model.PaymentCard;
 import org.springframework.data.jpa.domain.Specification;
 
 public class PaymentCardSpecification {
+    private PaymentCardSpecification() {
+
+    }
 
     public static Specification<PaymentCard> hasUserName(String name) {
         return (root, query, cb) ->

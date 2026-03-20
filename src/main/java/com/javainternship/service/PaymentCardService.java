@@ -1,4 +1,4 @@
-package com.javainternship.service.interf;
+package com.javainternship.service;
 
 import com.javainternship.dto.request.create.CreatePaymentCardRequest;
 import com.javainternship.dto.request.update.UpdatePaymentCardRequest;

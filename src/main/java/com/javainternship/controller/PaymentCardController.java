@@ -4,7 +4,7 @@ import com.javainternship.dto.request.create.CreatePaymentCardRequest;
 import com.javainternship.dto.request.update.SetPaymentCardStatusRequest;
 import com.javainternship.dto.request.update.UpdatePaymentCardRequest;
 import com.javainternship.dto.response.PaymentCardResponse;
-import com.javainternship.service.interf.PaymentCardService;
+import com.javainternship.service.PaymentCardService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;

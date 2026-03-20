@@ -1,6 +1,5 @@
 package com.javainternship.service.impl;
 
-import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.request.update.UpdateUserRequest;
 import com.javainternship.dto.response.UserResponse;
 import com.javainternship.exception.UserNotFoundException;

@@ -4,7 +4,7 @@ import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.request.update.UpdateUserRequest;
 import com.javainternship.dto.request.update.SetUserStatusRequest;
 import com.javainternship.dto.response.UserResponse;
-import com.javainternship.service.interf.UserService;
+import com.javainternship.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;

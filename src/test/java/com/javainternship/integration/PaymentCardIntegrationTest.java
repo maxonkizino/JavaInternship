@@ -112,8 +112,7 @@ class PaymentCardIntegrationTest extends AbstractIntegrationTest {
                 .returnResult();
         assertThat(byUserResult.getResponseBody()).isNotNull();
         List<?> content = (List<?>) byUserResult.getResponseBody().get("content");
-        assertThat(content).isNotNull();
-        assertThat(content).isNotEmpty();
+        assertThat(content).isNotNull().isNotEmpty();
 
         UpdatePaymentCardRequest updateRequest = new UpdatePaymentCardRequest();
         updateRequest.setHolder("Jane Doe");

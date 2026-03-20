@@ -9,7 +9,7 @@ import com.javainternship.mapper.UserMapper;
 import com.javainternship.model.User;
 import com.javainternship.model.specification.UserSpecification;
 import com.javainternship.repository.UserRepository;
-import com.javainternship.service.interf.UserService;
+import com.javainternship.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,6 +26,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
+    private static final String USER_NOT_FOUND = "User not found";
 
     private final UserRepository repository;
     private final UserMapper mapper;
@@ -71,7 +72,7 @@ public class UserServiceImpl implements UserService {
                 .and(UserSpecification.isActive());
 
         User user = repository.findOne(spec)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
         return mapper.toUserResponse(user);
     }
 
@@ -104,7 +105,7 @@ public class UserServiceImpl implements UserService {
                 .and(UserSpecification.isActive());
 
         User user = repository.findOne(spec)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
         mapper.toUser(request,user);
         repository.save(user);
         return mapper.toUserResponse(user);
@@ -124,7 +125,10 @@ public class UserServiceImpl implements UserService {
             }
     )
     public void deleteUser(Long id) {
-        deactivateUser(id);
+        User user = repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
+        user.setActive(false);
+        repository.save(user);
     }
 
     @Override
@@ -140,7 +144,7 @@ public class UserServiceImpl implements UserService {
     )
     public void activateUser(Long id) {
         User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
         user.setActive(true);
         repository.save(user);
     }
@@ -158,7 +162,7 @@ public class UserServiceImpl implements UserService {
     )
     public void deactivateUser(Long id) {
         User user = repository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
         user.setActive(false);
         repository.save(user);
     }

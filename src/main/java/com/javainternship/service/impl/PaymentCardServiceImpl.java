@@ -13,7 +13,7 @@ import com.javainternship.model.specification.PaymentCardSpecification;
 import com.javainternship.repository.PaymentCardRepository;
 import com.javainternship.repository.UserRepository;
 import com.javainternship.config.PaymentCardLimitProperties;
-import com.javainternship.service.interf.PaymentCardService;
+import com.javainternship.service.PaymentCardService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -29,6 +29,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class PaymentCardServiceImpl implements PaymentCardService {
+    private static final String PAYMENT_CARD_NOT_FOUND_WITH_ID = "Payment Card Not Found with id:";
 
     private final PaymentCardRepository repository;
     private final PaymentCardMapper mapper;
@@ -57,7 +58,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
                 .and(PaymentCardSpecification.isUserActive());
 
         PaymentCard card = repository.findOne(spec)
-                .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
+                .orElseThrow(() -> new PaymentCardNotFoundException(PAYMENT_CARD_NOT_FOUND_WITH_ID + id));
         return mapper.toPaymentCardResponse(card);
     }
 
@@ -142,7 +143,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
                 .and(PaymentCardSpecification.isUserActive());
 
         PaymentCard card = repository.findOne(spec)
-                .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
+                .orElseThrow(() -> new PaymentCardNotFoundException(PAYMENT_CARD_NOT_FOUND_WITH_ID + id));
         mapper.toPaymentCard(request, card);
         card = repository.save(card);
         return mapper.toPaymentCardResponse(card);
@@ -162,7 +163,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
                 .and(PaymentCardSpecification.isUserActive());
 
         PaymentCard card = repository.findOne(spec)
-                .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
+                .orElseThrow(() -> new PaymentCardNotFoundException(PAYMENT_CARD_NOT_FOUND_WITH_ID + id));
         card.setActive(false);
         repository.save(card);
     }
@@ -176,7 +177,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     })
     public void activatePaymentCard(Long id) {
         PaymentCard card = repository.findById(id)
-                .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
+                .orElseThrow(() -> new PaymentCardNotFoundException(PAYMENT_CARD_NOT_FOUND_WITH_ID + id));
         card.setActive(true);
         repository.save(card);
     }
@@ -190,7 +191,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     })
     public void deactivatePaymentCard(Long id) {
         PaymentCard card = repository.findById(id)
-                .orElseThrow(() -> new PaymentCardNotFoundException("Payment Card Not Found with id:" + id));
+                .orElseThrow(() -> new PaymentCardNotFoundException(PAYMENT_CARD_NOT_FOUND_WITH_ID + id));
         card.setActive(false);
         repository.save(card);
     }
