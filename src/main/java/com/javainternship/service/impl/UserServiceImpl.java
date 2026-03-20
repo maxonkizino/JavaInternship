@@ -115,7 +115,12 @@ public class UserServiceImpl implements UserService {
     @Caching(
             evict = {
                     @CacheEvict(cacheNames = "usersByEmail", allEntries = true),
-                    @CacheEvict(cacheNames = "usersById", key = "#id")
+                    @CacheEvict(cacheNames = "usersById", key = "#id"),
+                    // User active state affects visibility of user's cards.
+                    // Must evict card caches too to avoid returning soft-deleted data from Redis.
+                    @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsById", allEntries = true)
             }
     )
     public void deleteUser(Long id) {
@@ -127,7 +132,10 @@ public class UserServiceImpl implements UserService {
     @Caching(
             evict = {
                     @CacheEvict(cacheNames = "usersByEmail", allEntries = true),
-                    @CacheEvict(cacheNames = "usersById", key = "#id")
+                    @CacheEvict(cacheNames = "usersById", key = "#id"),
+                    @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsById", allEntries = true)
             }
     )
     public void activateUser(Long id) {
@@ -142,7 +150,10 @@ public class UserServiceImpl implements UserService {
     @Caching(
             evict = {
                     @CacheEvict(cacheNames = "usersByEmail", allEntries = true),
-                    @CacheEvict(cacheNames = "usersById", key = "#id")
+                    @CacheEvict(cacheNames = "usersById", key = "#id"),
+                    @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsById", allEntries = true)
             }
     )
     public void deactivateUser(Long id) {

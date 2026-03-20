@@ -100,7 +100,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     @Caching(evict = {
             @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
             @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
-            @CacheEvict(cacheNames = "cardsById", allEntries = true)
+
     })
     public PaymentCardResponse createPaymentCard(CreatePaymentCardRequest request) {
         Long userId = request.getUserId();

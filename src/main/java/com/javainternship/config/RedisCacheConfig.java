@@ -23,7 +23,7 @@ public class RedisCacheConfig {
         GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
                 .enableDefaultTyping(
                         BasicPolymorphicTypeValidator.builder()
-                                .allowIfBaseType("com.innowise.internship")
+                                .allowIfBaseType("com.javainternship")
                                 .build())
                 .build();
 
