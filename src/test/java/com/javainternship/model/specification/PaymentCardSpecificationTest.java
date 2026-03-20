@@ -1,7 +1,6 @@
 package com.javainternship.model.specification;
 
 import com.javainternship.model.PaymentCard;
-import com.javainternship.model.User;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;

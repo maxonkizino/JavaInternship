@@ -117,8 +117,6 @@ public class UserServiceImpl implements UserService {
             evict = {
                     @CacheEvict(cacheNames = "usersByEmail", allEntries = true),
                     @CacheEvict(cacheNames = "usersById", key = "#id"),
-                    // User active state affects visibility of user's cards.
-                    // Must evict card caches too to avoid returning soft-deleted data from Redis.
                     @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
                     @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
                     @CacheEvict(cacheNames = "cardsById", allEntries = true)
