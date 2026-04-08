@@ -20,9 +20,9 @@ COPY --from=build /app/target/app.jar app.jar
 
 
 ENV SPRING_PROFILES_ACTIVE=docker
+ENV SERVER_PORT=8081
 
-
-EXPOSE 8080
+EXPOSE 8081
 
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
