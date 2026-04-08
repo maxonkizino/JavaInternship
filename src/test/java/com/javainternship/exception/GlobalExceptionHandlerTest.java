@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -59,6 +60,21 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getMessage()).isEqualTo("Constraint violation");
         assertThat(response.getBody().getPath()).isEqualTo("/api/users");
+    }
+
+    @Test
+    void handleAccessDenied_returns403() {
+        AccessDeniedException ex = new AccessDeniedException("forbidden");
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("/api/users/2");
+
+        var response = handler.handleAccessDenied(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getStatus()).isEqualTo(403);
+        assertThat(response.getBody().getMessage()).isEqualTo("forbidden");
+        assertThat(response.getBody().getPath()).isEqualTo("/api/users/2");
     }
 
     @Test

@@ -24,15 +24,17 @@ import java.util.List;
 
 /**
  * Integration tests run without a real JWT; all requests use a synthetic admin with user id 1.
+ * CSRF is off here so WebTestClient flows match order-service style integration tests without a CSRF preflight.
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @Profile("integrationtest")
 public class IntegrationTestSecurityConfig {
 
     @Bean
     @Order(1)
+    @SuppressWarnings("java:S4502")
     public SecurityFilterChain integrationTestSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())

@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -268,5 +269,138 @@ class PaymentCardServiceImplTest {
 
         assertThat(card.isActive()).isFalse();
         verify(repository).save(card);
+    }
+
+    private void asRegularUser(long userId) {
+        reset(securityUtils);
+        when(securityUtils.isCurrentUserAdmin()).thenReturn(false);
+        when(securityUtils.getCurrentUserId()).thenReturn(userId);
+        when(securityUtils.isOwnerOrAdmin(anyLong())).thenAnswer(inv -> {
+            Long id = inv.getArgument(0);
+            return id != null && id.equals(userId);
+        });
+    }
+
+    @Test
+    void findPaymentCardById_throwsAccessDenied_whenNotOwner() {
+        asRegularUser(10L);
+        PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(99L);
+        card.setUser(owner);
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
+
+        assertThatThrownBy(() -> service.findPaymentCardById(1L))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(mapper, never()).toPaymentCardResponse(any());
+    }
+
+    @Test
+    void findAllPaymentCards_throwsAccessDenied_whenNotAdmin() {
+        asRegularUser(10L);
+
+        assertThatThrownBy(() -> service.findAllPaymentCards())
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).findAll((Specification<PaymentCard>) any());
+    }
+
+    @Test
+    void searchPaymentCards_throwsAccessDenied_whenCurrentUserIdMissing() {
+        reset(securityUtils);
+        when(securityUtils.isCurrentUserAdmin()).thenReturn(false);
+        when(securityUtils.getCurrentUserId()).thenReturn(null);
+
+        assertThatThrownBy(() -> service.searchPaymentCards("a", "b", Pageable.unpaged()))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).findAll((Specification<PaymentCard>) any(), any(Pageable.class));
+    }
+
+    @Test
+    void findCardsByUserId_throwsAccessDenied_whenNotOwner() {
+        asRegularUser(10L);
+
+        assertThatThrownBy(() -> service.findCardsByUserId(99L, Pageable.unpaged()))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).findAll((Specification<PaymentCard>) any(), any(Pageable.class));
+    }
+
+    @Test
+    void createPaymentCard_throwsAccessDenied_whenNonAdminCreatesForAnotherUser() {
+        asRegularUser(10L);
+        CreatePaymentCardRequest request = new CreatePaymentCardRequest();
+        request.setUserId(99L);
+
+        assertThatThrownBy(() -> service.createPaymentCard(request))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(userRepository, never()).findByIdForUpdate(anyLong());
+    }
+
+    @Test
+    void updatePaymentCard_throwsAccessDenied_whenNotOwner() {
+        asRegularUser(10L);
+        PaymentCard existing = new PaymentCard();
+        User owner = new User();
+        owner.setId(99L);
+        existing.setUser(owner);
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> service.updatePaymentCard(new UpdatePaymentCardRequest(), 1L))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void deletePaymentCard_throwsAccessDenied_whenNotOwner() {
+        asRegularUser(10L);
+        PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(99L);
+        card.setUser(owner);
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
+
+        assertThatThrownBy(() -> service.deletePaymentCard(1L))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void activatePaymentCard_throwsAccessDenied_whenNotOwner() {
+        asRegularUser(10L);
+        PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(99L);
+        card.setUser(owner);
+        when(repository.findById(1L)).thenReturn(Optional.of(card));
+
+        assertThatThrownBy(() -> service.activatePaymentCard(1L))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void deactivatePaymentCard_throwsAccessDenied_whenNotOwner() {
+        asRegularUser(10L);
+        PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(99L);
+        card.setUser(owner);
+        when(repository.findById(1L)).thenReturn(Optional.of(card));
+
+        assertThatThrownBy(() -> service.deactivatePaymentCard(1L))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void assertCardOwnerOrAdmin_throwsWhenUserMissingOnCard() {
+        when(securityUtils.isCurrentUserAdmin()).thenReturn(false);
+        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+        when(securityUtils.isOwnerOrAdmin(anyLong())).thenReturn(false);
+        PaymentCard card = new PaymentCard();
+        card.setUser(null);
+        when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
+
+        assertThatThrownBy(() -> service.findPaymentCardById(1L))
+                .isInstanceOf(AccessDeniedException.class);
     }
 }
