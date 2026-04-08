@@ -1,6 +1,11 @@
 spring:
   application:
     name: JavaInternship
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: ${JWT_SECRET:development-jwt-secret-at-least-256-bits-long-for-hs256-algorithm-secure-key}
   datasource:
     driver-class-name: ${DB_DRIVER}
     url: ${DB_URL}

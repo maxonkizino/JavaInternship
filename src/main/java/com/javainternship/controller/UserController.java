@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class UserController {
     private final UserService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Page<UserResponse>> getAllUsers(@RequestParam(required = false) String name,
                                                             @RequestParam(required = false) String surname,
                                                             @RequestParam(defaultValue = "0") int page,
@@ -30,22 +32,26 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findUserById(id));
     }
 
     @GetMapping("/by-email/{email}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
         return ResponseEntity.ok(service.findUserByEmail(email));
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         UserResponse response = service.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,
                                                    @Valid @RequestBody UpdateUserRequest request) {
         UserResponse response = service.updateUser(request, id);
@@ -53,12 +59,14 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         service.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> setUserStatus(@PathVariable Long id,
                                                  @Valid @RequestBody SetUserStatusRequest request) {
         if (Boolean.TRUE.equals(request.getActive())) {

@@ -6,6 +6,7 @@ import com.javainternship.exception.UserNotFoundException;
 import com.javainternship.mapper.UserMapper;
 import com.javainternship.model.User;
 import com.javainternship.repository.UserRepository;
+import com.javainternship.security.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -34,18 +36,25 @@ class UserServiceImplTest {
     @Mock
     private UserMapper mapper;
 
+    @Mock
+    private SecurityUtils securityUtils;
+
     @InjectMocks
     private UserServiceImpl service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(securityUtils.isCurrentUserAdmin()).thenReturn(true);
+        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+        when(securityUtils.isOwnerOrAdmin(anyLong())).thenReturn(true);
     }
 
     @Test
     void findUserByEmail_returnsDto() {
         String email = "test@example.com";
         User user = new User();
+        user.setId(1L);
         UserResponse response = new UserResponse();
 
         when(repository.findOne((Specification<User>) any())).thenReturn(Optional.of(user));

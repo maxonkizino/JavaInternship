@@ -12,6 +12,7 @@ import com.javainternship.model.PaymentCard;
 import com.javainternship.model.User;
 import com.javainternship.repository.PaymentCardRepository;
 import com.javainternship.repository.UserRepository;
+import com.javainternship.security.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +48,9 @@ class PaymentCardServiceImplTest {
     @Mock
     private PaymentCardLimitProperties limitProperties;
 
+    @Mock
+    private SecurityUtils securityUtils;
+
     @InjectMocks
     private PaymentCardServiceImpl service;
 
@@ -53,12 +58,18 @@ class PaymentCardServiceImplTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(limitProperties.getMaxPerUser()).thenReturn(5L);
+        when(securityUtils.isCurrentUserAdmin()).thenReturn(true);
+        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+        when(securityUtils.isOwnerOrAdmin(anyLong())).thenReturn(true);
     }
 
     @Test
     void findPaymentCardByCardNumber_returnsDto() {
         String number = "1234";
         PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(1L);
+        card.setUser(owner);
         PaymentCardResponse response = new PaymentCardResponse();
 
         when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
@@ -81,6 +92,9 @@ class PaymentCardServiceImplTest {
     @Test
     void findPaymentCardById_returnsDto() {
         PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(1L);
+        card.setUser(owner);
         PaymentCardResponse response = new PaymentCardResponse();
 
         when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
@@ -188,6 +202,9 @@ class PaymentCardServiceImplTest {
     void updatePaymentCard_updatesExisting() {
         UpdatePaymentCardRequest request = new UpdatePaymentCardRequest();
         PaymentCard existing = new PaymentCard();
+        User owner = new User();
+        owner.setId(1L);
+        existing.setUser(owner);
         PaymentCardResponse response = new PaymentCardResponse();
 
         when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(existing));
@@ -205,6 +222,9 @@ class PaymentCardServiceImplTest {
     @Test
     void deletePaymentCard_softDeletes() {
         PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(1L);
+        card.setUser(owner);
         card.setActive(true);
 
         when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(card));
@@ -219,6 +239,9 @@ class PaymentCardServiceImplTest {
     @Test
     void activatePaymentCard_setsActiveTrue() {
         PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(1L);
+        card.setUser(owner);
         card.setActive(false);
 
         when(repository.findById(1L)).thenReturn(Optional.of(card));
@@ -233,6 +256,9 @@ class PaymentCardServiceImplTest {
     @Test
     void deactivatePaymentCard_setsActiveFalse() {
         PaymentCard card = new PaymentCard();
+        User owner = new User();
+        owner.setId(1L);
+        card.setUser(owner);
         card.setActive(true);
 
         when(repository.findById(1L)).thenReturn(Optional.of(card));

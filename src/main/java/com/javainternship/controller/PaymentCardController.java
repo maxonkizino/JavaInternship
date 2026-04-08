@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class PaymentCardController {
     private final PaymentCardService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Page<PaymentCardResponse>> getAllPaymentCards(@RequestParam(required = false) String name,
                                                                               @RequestParam(required = false) String surname,
                                                                               @RequestParam(defaultValue = "0") int page,
@@ -30,16 +32,19 @@ public class PaymentCardController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<PaymentCardResponse> getPaymentCardById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findPaymentCardById(id));
     }
 
     @GetMapping("/by-number/{cardNumber}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<PaymentCardResponse> getPaymentCardByNumber(@PathVariable String cardNumber) {
         return ResponseEntity.ok(service.findPaymentCardByCardNumber(cardNumber));
     }
 
     @GetMapping("/by-user/{userId}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Page<PaymentCardResponse>> getCardsByUserId(@PathVariable Long userId,
                                                                         @RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size) {
@@ -47,12 +52,14 @@ public class PaymentCardController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<PaymentCardResponse> createPaymentCard(@Valid @RequestBody CreatePaymentCardRequest request) {
         PaymentCardResponse response = service.createPaymentCard(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<PaymentCardResponse> updatePaymentCard(@PathVariable Long id,
                                                                  @Valid @RequestBody UpdatePaymentCardRequest request) {
         PaymentCardResponse response = service.updatePaymentCard(request, id);
@@ -60,12 +67,14 @@ public class PaymentCardController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Void> deletePaymentCard(@PathVariable Long id) {
         service.deletePaymentCard(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Void> setPaymentCardStatus(@PathVariable Long id,
                                                        @Valid @RequestBody SetPaymentCardStatusRequest request) {
         if (Boolean.TRUE.equals(request.getActive())) {
