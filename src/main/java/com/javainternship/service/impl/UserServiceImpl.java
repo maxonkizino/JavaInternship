@@ -200,6 +200,39 @@ public class UserServiceImpl implements UserService {
         repository.save(user);
     }
 
+    @Override
+    @Transactional
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = "usersByEmail", allEntries = true),
+                    @CacheEvict(cacheNames = "usersById", allEntries = true)
+            }
+    )
+    public UserResponse createUserThroughGateway(CreateUserRequest request) {
+        User user = mapper.toUser(request);
+        user.setActive(true);
+        user = repository.save(user);
+        return mapper.toUserResponse(user);
+    }
+
+    @Override
+    @Transactional
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = "usersByEmail", allEntries = true),
+                    @CacheEvict(cacheNames = "usersById", key = "#userId"),
+                    @CacheEvict(cacheNames = "cardsByUserId", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsById", allEntries = true)
+            }
+    )
+    public void rollbackGatewayRegistration(Long userId) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
+        user.setActive(false);
+        repository.save(user);
+    }
+
     private void requireAdmin() {
         if (!securityUtils.isCurrentUserAdmin()) {
             throw new AccessDeniedException(ADMIN_ONLY);

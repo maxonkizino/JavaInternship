@@ -35,3 +35,7 @@ spring:
 app:
   cards:
     max-per-user: 5
+
+user:
+  gateway:
+    internal-secret: ${GATEWAY_INTERNAL_SECRET:local-dev-gateway-internal-secret}
