@@ -2,8 +2,6 @@ package com.javainternship.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -42,28 +40,7 @@ public class ResourceServerSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(csrfTokenRepository)
-                        .requireCsrfProtectionMatcher(request -> {
-                            String method = request.getMethod();
-                            boolean isUnsafeMethod = !HttpMethod.GET.matches(method)
-                                    && !HttpMethod.HEAD.matches(method)
-                                    && !HttpMethod.OPTIONS.matches(method)
-                                    && !HttpMethod.TRACE.matches(method);
-                            if (!isUnsafeMethod) {
-                                return false;
-                            }
-
-                            String uri = request.getRequestURI();
-                            boolean isInternalCall = "/api/users/internal".equals(uri)
-                                    || (uri != null && uri.startsWith("/api/users/internal/"));
-                            if (isInternalCall) {
-                                return false;
-                            }
-
-                            String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-                            boolean isBearerRequest = authorization != null && authorization.startsWith("Bearer ");
-                            return !isBearerRequest;
-                        }))
+                        .csrfTokenRepository(csrfTokenRepository))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .authorizeHttpRequests(auth -> auth
