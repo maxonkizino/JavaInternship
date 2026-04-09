@@ -1,5 +1,6 @@
 package com.javainternship.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -22,7 +24,10 @@ import java.nio.charset.StandardCharsets;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @Profile("!integrationtest")
+@RequiredArgsConstructor
 public class ResourceServerSecurityConfig {
+
+    private final CsrfTokenRepository csrfTokenRepository;
 
     @Bean
     public JwtDecoder jwtDecoder(
@@ -36,14 +41,16 @@ public class ResourceServerSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.ignoringRequestMatchers(
+                        // Internal gateway route uses shared service-to-service secret, not browser cookies.
                         request -> {
                             String uri = request.getRequestURI();
                             return "/api/users/internal".equals(uri) || (uri != null && uri.startsWith("/api/users/internal/"));
                         },
+                        // Bearer-token API calls are stateless and not vulnerable to cookie-based CSRF.
                         request -> {
                             String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
                             return authorization != null && authorization.startsWith("Bearer ");
-                        }))
+                        }).csrfTokenRepository(csrfTokenRepository))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .authorizeHttpRequests(auth -> auth
