@@ -1,6 +1,5 @@
 package com.javainternship.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,10 +21,7 @@ import java.nio.charset.StandardCharsets;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @Profile("!integrationtest")
-@RequiredArgsConstructor
 public class ResourceServerSecurityConfig {
-
-    private final CsrfTokenRepository csrfTokenRepository;
 
     @Bean
     public JwtDecoder jwtDecoder(
@@ -39,9 +34,7 @@ public class ResourceServerSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(csrfTokenRepository)
-                        .ignoringRequestMatchers("/api/users/internal/**"))
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .authorizeHttpRequests(auth -> auth
