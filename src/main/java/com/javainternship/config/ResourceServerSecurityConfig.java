@@ -38,7 +38,7 @@ public class ResourceServerSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .csrf(csrf -> csrf.ignoringRequestMatchers(
                         // Internal gateway route uses shared service-to-service secret, not browser cookies.

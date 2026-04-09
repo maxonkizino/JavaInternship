@@ -35,7 +35,7 @@ public class IntegrationTestSecurityConfig {
     @Bean
     @Order(1)
     @SuppressWarnings("java:S4502")
-    public SecurityFilterChain integrationTestSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain integrationTestSecurityFilterChain(HttpSecurity http) {
         http
                 .csrf(csrf -> csrf.disable())
                 .addFilterBefore(syntheticAdminFilter(), CsrfFilter.class)

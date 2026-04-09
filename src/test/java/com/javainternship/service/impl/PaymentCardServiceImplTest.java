@@ -309,8 +309,9 @@ class PaymentCardServiceImplTest {
         reset(securityUtils);
         when(securityUtils.isCurrentUserAdmin()).thenReturn(false);
         when(securityUtils.getCurrentUserId()).thenReturn(null);
+        Pageable pageable = Pageable.unpaged();
 
-        assertThatThrownBy(() -> service.searchPaymentCards("a", "b", Pageable.unpaged()))
+        assertThatThrownBy(() -> service.searchPaymentCards("a", "b", pageable))
                 .isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).findAll((Specification<PaymentCard>) any(), any(Pageable.class));
     }
@@ -318,8 +319,9 @@ class PaymentCardServiceImplTest {
     @Test
     void findCardsByUserId_throwsAccessDenied_whenNotOwner() {
         asRegularUser(10L);
+        Pageable pageable = Pageable.unpaged();
 
-        assertThatThrownBy(() -> service.findCardsByUserId(99L, Pageable.unpaged()))
+        assertThatThrownBy(() -> service.findCardsByUserId(99L, pageable))
                 .isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).findAll((Specification<PaymentCard>) any(), any(Pageable.class));
     }
@@ -342,9 +344,10 @@ class PaymentCardServiceImplTest {
         User owner = new User();
         owner.setId(99L);
         existing.setUser(owner);
+        UpdatePaymentCardRequest request = new UpdatePaymentCardRequest();
         when(repository.findOne((Specification<PaymentCard>) any())).thenReturn(Optional.of(existing));
 
-        assertThatThrownBy(() -> service.updatePaymentCard(new UpdatePaymentCardRequest(), 1L))
+        assertThatThrownBy(() -> service.updatePaymentCard(request, 1L))
                 .isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).save(any());
     }

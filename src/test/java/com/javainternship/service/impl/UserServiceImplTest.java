@@ -273,8 +273,9 @@ class UserServiceImplTest {
         reset(securityUtils);
         when(securityUtils.isCurrentUserAdmin()).thenReturn(false);
         when(securityUtils.getCurrentUserId()).thenReturn(null);
+        Pageable pageable = Pageable.unpaged();
 
-        assertThatThrownBy(() -> service.searchUsers(null, null, Pageable.unpaged()))
+        assertThatThrownBy(() -> service.searchUsers(null, null, pageable))
                 .isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).findAll((Specification<User>) any(), any(Pageable.class));
     }
@@ -293,8 +294,9 @@ class UserServiceImplTest {
     @Test
     void createUser_throwsAccessDenied_whenNotAdmin() {
         asRegularUser(10L);
+        CreateUserRequest request = new CreateUserRequest();
 
-        assertThatThrownBy(() -> service.createUser(new CreateUserRequest()))
+        assertThatThrownBy(() -> service.createUser(request))
                 .isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).save(any());
     }
@@ -311,8 +313,9 @@ class UserServiceImplTest {
     @Test
     void updateUser_throwsAccessDenied_whenNotOwner() {
         asRegularUser(10L);
+        UpdateUserRequest request = new UpdateUserRequest();
 
-        assertThatThrownBy(() -> service.updateUser(new UpdateUserRequest(), 99L))
+        assertThatThrownBy(() -> service.updateUser(request, 99L))
                 .isInstanceOf(AccessDeniedException.class);
         verify(repository, never()).findOne((Specification<User>) any());
     }
