@@ -12,7 +12,7 @@ concurrency:
 
 env:
   JAVA_VERSION: '21'
-  DOCKER_IMAGE: maxononion/javainternship
+  DOCKER_IMAGE: maxononion/javainternship-user-service
 
 permissions:
   contents: read
