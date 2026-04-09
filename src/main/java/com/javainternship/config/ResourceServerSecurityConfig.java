@@ -1,6 +1,7 @@
 package com.javainternship.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -34,7 +35,15 @@ public class ResourceServerSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers(
+                        request -> {
+                            String uri = request.getRequestURI();
+                            return "/api/users/internal".equals(uri) || (uri != null && uri.startsWith("/api/users/internal/"));
+                        },
+                        request -> {
+                            String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+                            return authorization != null && authorization.startsWith("Bearer ");
+                        }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .authorizeHttpRequests(auth -> auth
