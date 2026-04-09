@@ -190,6 +190,53 @@ class UserServiceImplTest {
                 .isInstanceOf(UserNotFoundException.class);
     }
 
+    @Test
+    void createUserThroughGateway_savesActiveUser() {
+        CreateUserRequest request = new CreateUserRequest();
+        User mapped = new User();
+        mapped.setActive(false);
+        User saved = new User();
+        saved.setId(5L);
+        saved.setActive(true);
+        UserResponse response = new UserResponse();
+
+        when(mapper.toUser(request)).thenReturn(mapped);
+        when(repository.save(mapped)).thenReturn(saved);
+        when(mapper.toUserResponse(saved)).thenReturn(response);
+
+        UserResponse result = service.createUserThroughGateway(request);
+
+        assertThat(mapped.isActive()).isTrue();
+        assertThat(result).isSameAs(response);
+        verify(repository).save(mapped);
+        verify(mapper).toUserResponse(saved);
+    }
+
+    @Test
+    void rollbackGatewayRegistration_setsUserInactive() {
+        User user = new User();
+        user.setId(7L);
+        user.setActive(true);
+        when(repository.findById(7L)).thenReturn(Optional.of(user));
+        when(repository.save(user)).thenReturn(user);
+
+        service.rollbackGatewayRegistration(7L);
+
+        assertThat(user.isActive()).isFalse();
+        verify(repository).findById(7L);
+        verify(repository).save(user);
+    }
+
+    @Test
+    void rollbackGatewayRegistration_throwsWhenUserMissing() {
+        when(repository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.rollbackGatewayRegistration(404L))
+                .isInstanceOf(UserNotFoundException.class);
+        verify(repository).findById(404L);
+        verify(repository, never()).save(any(User.class));
+    }
+
     private void asRegularUser(long userId) {
         reset(securityUtils);
         when(securityUtils.isCurrentUserAdmin()).thenReturn(false);
