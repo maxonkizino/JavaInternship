@@ -1,0 +1,31 @@
+# Локальная сборка user-service для общего стека (корневой docker-compose.yml).
+# Только из папки модуля: docker compose -f docker-compose.local.yml up — нужен общий postgres (запускайте из корня репозитория).
+services:
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - stack
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: "8081"
+      DB_DRIVER: org.postgresql.Driver
+      DB_URL: jdbc:postgresql://postgres:5432/user_service
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET: ${JWT_SECRET}
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  stack:
+    driver: bridge

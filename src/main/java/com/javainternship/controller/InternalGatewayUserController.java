@@ -3,6 +3,7 @@ package com.javainternship.controller;
 import com.javainternship.config.UserGatewayProperties;
 import com.javainternship.dto.request.create.CreateUserRequest;
 import com.javainternship.dto.response.UserResponse;
+import com.javainternship.logging.ControllerLogger;
 import com.javainternship.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +29,13 @@ public class InternalGatewayUserController {
 
     private final UserGatewayProperties gatewayProperties;
     private final UserService userService;
+    private final ControllerLogger controllerLogger;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
             @RequestHeader(GATEWAY_HEADER) String secret,
             @Valid @RequestBody CreateUserRequest request) {
+        controllerLogger.methodCalled("InternalGatewayUserController", "register", request.getEmail());
         if (!isValidSecret(secret)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -44,6 +47,7 @@ public class InternalGatewayUserController {
     public ResponseEntity<Void> rollback(
             @RequestHeader(GATEWAY_HEADER) String secret,
             @PathVariable Long userId) {
+        controllerLogger.methodCalled("InternalGatewayUserController", "rollback", userId);
         if (!isValidSecret(secret)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
