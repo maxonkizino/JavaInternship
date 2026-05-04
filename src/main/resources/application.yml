@@ -1,6 +1,14 @@
+server:
+  port: ${SERVER_PORT:8081}
+
 spring:
   application:
     name: JavaInternship
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: ${JWT_SECRET:development-jwt-secret-at-least-256-bits-long-for-hs256-algorithm-secure-key}
   datasource:
     driver-class-name: ${DB_DRIVER}
     url: ${DB_URL}
@@ -27,3 +35,7 @@ spring:
 app:
   cards:
     max-per-user: 5
+
+user:
+  gateway:
+    internal-secret: ${GATEWAY_INTERNAL_SECRET:local-dev-gateway-internal-secret}

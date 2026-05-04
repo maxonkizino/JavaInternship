@@ -19,6 +19,9 @@ public interface PaymentCardService {
 
     Page<PaymentCardResponse> findCardsByUserId(Long userId, Pageable pageable);
 
+
+
+
     PaymentCardResponse createPaymentCard(CreatePaymentCardRequest request);
 
     PaymentCardResponse updatePaymentCard(UpdatePaymentCardRequest request, Long id);

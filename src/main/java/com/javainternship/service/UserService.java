@@ -26,5 +26,11 @@ public interface UserService {
     void activateUser(Long id);
 
     void deactivateUser(Long id);
+
+    /** Creates a user profile during gateway-orchestrated signup (no admin JWT). */
+    UserResponse createUserThroughGateway(CreateUserRequest request);
+
+    /** Compensates failed auth registration by deactivating the user profile. */
+    void rollbackGatewayRegistration(Long userId);
 }
 
