@@ -12,11 +12,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
 import javax.crypto.SecretKey;
@@ -62,10 +65,13 @@ public class ResourceServerSecurityConfig {
                 PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/users/internal/register"),
                 PathPatternRequestMatcher.pathPattern(HttpMethod.DELETE,
                         "/api/users/internal/register/{userId}/rollback"));
+        var requireCsrf = new AndRequestMatcher(
+                CsrfFilter.DEFAULT_CSRF_MATCHER,
+                new NegatedRequestMatcher(gatewayInternalCalls));
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
-                        .ignoringRequestMatchers(gatewayInternalCalls))
+                        .requireCsrfProtectionMatcher(requireCsrf))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(
                         jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
